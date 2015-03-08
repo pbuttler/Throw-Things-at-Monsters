@@ -63,13 +63,16 @@ void Player::VHandleInput(SDLKeyboardState* kb, SDLMouseState* ms, float dt)
 				if(m_throwPower < 1.0f) {
 				m_throwPower += dt;
 			} else {
-				if(m_item) {
-					ThrowItem();
-					m_throwPower = 0.0f;
-				}
+				
 			}
 		}
 		
+	} else if(ms->ButtonRelease(MOUSECS_LEFT)){
+		if(m_item) {
+			ThrowItem();
+			m_throwPower = 0.0f;
+		}
+		m_throwPower = 0.0f;
 	}
 
 	float dx = ms->X() - m_position.x;
