@@ -6,6 +6,7 @@ GameObject::GameObject(void)
 	m_position = Vector2::Zero;
 	m_origin = Vector2::Zero;
 	m_rotation = 0.0f;
+	m_bounds = Rect::EMPTY;
 }
 
 GameObject::~GameObject(void)
@@ -15,7 +16,7 @@ GameObject::~GameObject(void)
 
 void GameObject::VUpdate(float dt)
 {
-	m_position.x += dt * 25.0f;
+	
 }
 
 void GameObject::VRender(GLRenderer* renderer, float dt)
@@ -30,11 +31,14 @@ void GameObject::VRender(GLRenderer* renderer, float dt)
 void GameObject::SetTexture(Texture* texture)
 {
 	m_texture = texture;
+	m_bounds = Rect(m_position.x, m_position.y, m_texture->getWidth(), m_texture->getHeight());
 }
 
 void GameObject::SetPosition(Vector2 position)
 {
 	m_position = position;
+	m_bounds.x = m_position.x;
+	m_bounds.y = m_position.y;
 }
 
 void GameObject::SetOrigin(Vector2 origin)
@@ -69,6 +73,9 @@ const float GameObject::GetRotation() const
 	return m_rotation;
 }
 
-
+Rect& GameObject::GetBounds()
+{
+	return m_bounds;
+}
 
 

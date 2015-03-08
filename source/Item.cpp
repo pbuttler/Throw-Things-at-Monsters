@@ -1,5 +1,5 @@
 #include "Item.h"
-
+#include "player.h"
 
 Item::Item(void)
 {
@@ -10,7 +10,11 @@ Item::Item(char* n, float w, float s, float d)
 	weight = w;
 	speed = s;
 	damage = d;
-	active = false;
+	active = true;
+	onGround = true;
+	inAir = false;
+	velocity = Vector2::Unit;
+	acceleration = Vector2(-.01, -.01);
 }
 
 Item::~Item(void)
@@ -35,6 +39,23 @@ void Item::SetOwner(GameObject* g){
 void Item::SetActive(bool a){
 	active = a;
 }
+
+void Item::SetOnGround(bool og) {
+	onGround = og;
+}
+
+void Item::SetDirection(float dir) {
+	direction = dir;
+}
+
+void Item::SetOwned(bool ow) {
+	owned = ow;
+}
+
+void Item::SetInAir(bool ia) {
+	inAir = ia;
+}
+
 //Getters
 const char* Item::GetName() const{
 	return name;
@@ -54,6 +75,23 @@ const GameObject* Item::GetOwner() const{
 const bool Item::GetActive() const{
 	return active;
 }
+
+const bool Item::GetOnGround() const {
+	return onGround;
+}
+
+const float Item::GetDirection() const {
+	return direction;
+}
+
+const bool Item::GetInAir() const {
+	return inAir;
+}
+
+const bool Item::GetOwned() const {
+	return owned;
+}
+
 //Special functions
 void Item::PickUp(GameObject* o){
 	//method called when the player steps on an item that is just sitting in the world
@@ -66,4 +104,35 @@ void Item::ThrowItem(){
 }
 void Item::DestroyItem(){
 	//function called when the item needs to be destructed
+}
+
+
+void Item::VUpdate(float dt)
+{
+	if(!active)
+		return;
+
+	Vector2 angleDir = Vector2(cos(direction*0.0174532925), sin(direction*0.0174532925));
+
+	if(inAir)
+	{
+		m_position += velocity  * angleDir * dt * 400 * speed;
+		velocity += acceleration;
+		if(velocity.x <= 0.0f || velocity.y <= 0.0f) {
+			inAir = false;
+			onGround = true;
+			velocity = Vector2::Unit;
+		}
+	}
+
+	if(!owned) {
+		m_bounds.x = m_position.x;
+		m_bounds.y = m_position.y;
+	}
+}
+
+void Item::VRender(GLRenderer* renderer, float dt)
+{
+	if(active)
+		GameObject::VRender(renderer, dt);
 }
