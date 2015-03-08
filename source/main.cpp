@@ -3,6 +3,7 @@
 #include "gameobject.h"
 #include "player.h"
 #include "Item.h"
+#include "Enemy.h"
 
 #define GLRENDERER ((GLRenderer*)m_renderer)
 
@@ -24,8 +25,10 @@ public:
 	BMFont*		font;
 	Texture*    playerTex;
 	Texture*    itemTex;
+	Texture*	enemyTex;
 	Player      p;
 	ItemList    items;
+	Enemy		enemy1;
 };
 
 TestGame::TestGame()
@@ -39,6 +42,7 @@ void TestGame::VOnStartup(void)
 	font = m_content.LoadFont(VTEXT("Consolas_24.fnt"));
 	playerTex = m_content.LoadTexture(VTEXT("player.png"));
 	itemTex = m_content.LoadTexture(VTEXT("rock.png"));
+	enemyTex = m_content.LoadTexture(VTEXT("enemy.png"));
 	p.SetTexture(playerTex);
 	p.SetOrigin(Vector2(16, 16));
 	p.SetPosition(Vector2(20,20));
@@ -48,6 +52,12 @@ void TestGame::VOnStartup(void)
 	item->SetPosition(Vector2(100,100));
 	item->SetOrigin(Vector2(16, 16));
 	items.push_back(item);
+
+	// set up enemy
+	enemy1 = Enemy("", 1, p);
+	enemy1.SetTexture(enemyTex);
+	enemy1.SetPosition(Vector2(600, 400));
+	enemy1.SetOrigin(Vector2(16, 16));
 }
 
 void TestGame::VOnUpdate(float dt)
@@ -77,7 +87,8 @@ void TestGame::VOnUpdate(float dt)
 		}
 	}
 
-
+	enemy1.seekPlayer(p);
+	enemy1.VUpdate(dt);
 }
 
 void TestGame::VOnRender(float dt)
@@ -92,6 +103,8 @@ void TestGame::VOnRender(float dt)
 	USStream ss;
 	ss << "Throw Power: " << p.GetThrowPower() * 50.0f;
 	GLRENDERER->Render2DText(font, ss.str(), Vector2(20, m_window->VGetClientBounds().h - 30), Colors::White);
+
+	enemy1.VRender(GLRENDERER, dt);
 }
 
 void TestGame::VOnShutdown(void)
