@@ -10,20 +10,25 @@ class Enemy : public GameObject
 {
 public:
 	Enemy(void);
-	Enemy(string enemyName, int enemyHealth, Player target);
+	Enemy(string enemyName, int enemyHealth, Player target, Texture* deadTex);
 	~Enemy(void);
 	
 	virtual void VUpdate(float dt) override;
+	virtual void VRender(GLRenderer* renderer, float dt) override;
+	const bool         IsAlive() const;
 	//void observe();
 	//void determineAction();
 	//void move();
 	//void destroy();
+	void explode();
 	void seekPlayer(Player target);
+
+	static const int MOVE_SPEED = 75;
 	
 private:
-	string name;
-	int health;
-	bool alive;
-	static const int MOVE_SPEED = 75;
-	Vector2 velocity;
+	Texture*   deadTexture;
+	string	   name;
+	int		   health;
+	bool	   alive;
+	Vector2    velocity;
 };

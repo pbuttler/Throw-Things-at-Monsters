@@ -10,6 +10,7 @@
 using namespace Vixen;
 
 typedef std::vector<Item*> ItemList;
+typedef std::vector<Enemy*> EnemyList;
 
 class TestGame : public IGame
 {
@@ -24,11 +25,13 @@ public:
 public:
 	BMFont*		font;
 	Texture*    playerTex;
+	Texture*    splatTex;
 	Texture*    itemTex;
 	Texture*	enemyTex;
 	Player      p;
 	ItemList    items;
-	Enemy		enemy1;
+	EnemyList   enemies;
+	
 };
 
 TestGame::TestGame()
@@ -39,10 +42,16 @@ TestGame::TestGame()
 
 void TestGame::VOnStartup(void)
 {
+
+	GLRENDERER->VSetClearColor(Colors::Black);
+
+	srand(time(NULL));
+
 	font = m_content.LoadFont(VTEXT("Consolas_24.fnt"));
 	playerTex = m_content.LoadTexture(VTEXT("player.png"));
 	itemTex = m_content.LoadTexture(VTEXT("rock.png"));
 	enemyTex = m_content.LoadTexture(VTEXT("enemy.png"));
+	splatTex = m_content.LoadTexture(VTEXT("zombie_splat.png"));
 	p.SetTexture(playerTex);
 	p.SetOrigin(Vector2(16, 16));
 	p.SetPosition(Vector2(20,20));
@@ -54,10 +63,18 @@ void TestGame::VOnStartup(void)
 	items.push_back(item);
 
 	// set up enemy
-	enemy1 = Enemy("", 1, p);
-	enemy1.SetTexture(enemyTex);
-	enemy1.SetPosition(Vector2(600, 400));
-	enemy1.SetOrigin(Vector2(16, 16));
+	Enemy* enemy1 = new Enemy("", 1, p, splatTex);
+	for(int i = 0; i < 10; i++)
+	{
+		int rX = rand() % 800;
+		int rY = rand() % 600;
+		enemy1->SetPosition(Vector2(rX, rY));
+		enemy1->SetTexture(enemyTex);
+		enemy1->SetOrigin(Vector2(16, 16));
+		enemies.push_back(enemy1);
+		enemy1 = new Enemy("", 1, p, splatTex);
+	}
+	
 }
 
 void TestGame::VOnUpdate(float dt)
@@ -87,8 +104,17 @@ void TestGame::VOnUpdate(float dt)
 		}
 	}
 
-	enemy1.seekPlayer(p);
-	enemy1.VUpdate(dt);
+	for(auto& e : enemies) {
+		if(e->IsAlive())
+		{
+			e->seekPlayer(p);
+			e->VUpdate(dt);
+			if(e->GetBounds().Intersects(p.GetBounds()))
+			{
+				e->explode();
+			}
+		}
+	}
 }
 
 void TestGame::VOnRender(float dt)
@@ -96,15 +122,14 @@ void TestGame::VOnRender(float dt)
 	p.VRender(GLRENDERER, dt);
 
 	for(auto& item : items)
-	{
 		item->VRender(GLRENDERER, dt);
-	}
+
+	for(auto& e : enemies)
+		e->VRender(GLRENDERER, dt);
 
 	USStream ss;
 	ss << "Throw Power: " << p.GetThrowPower() * 50.0f;
 	GLRENDERER->Render2DText(font, ss.str(), Vector2(20, m_window->VGetClientBounds().h - 30), Colors::White);
-
-	enemy1.VRender(GLRENDERER, dt);
 }
 
 void TestGame::VOnShutdown(void)

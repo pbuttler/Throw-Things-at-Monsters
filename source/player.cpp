@@ -12,6 +12,11 @@ const float Player::GetThrowPower() const
 	return m_throwPower;
 }
 
+const int Player::GetHP() const
+{
+	return m_hp;
+}
+
 void Player::PickUpItem(Item* item)
 {
 	item->SetActive(false);
@@ -45,6 +50,11 @@ void Player::VUpdate(float dt)
 	m_bounds.y = m_position.y;
 }
 
+void Player::TakeDamage()
+{
+	m_hp--;
+}
+
 
 void Player::VHandleInput(SDLKeyboardState* kb, SDLMouseState* ms, float dt)
 {
@@ -62,8 +72,6 @@ void Player::VHandleInput(SDLKeyboardState* kb, SDLMouseState* ms, float dt)
 		if(m_item) {
 				if(m_throwPower < 1.0f) {
 				m_throwPower += dt;
-			} else {
-				
 			}
 		}
 		
