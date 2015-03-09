@@ -28,6 +28,9 @@ public:
 	Texture*    splatTex;
 	Texture*    itemTex;
 	Texture*	enemyTex;
+	Texture*    heartTex;
+	Texture*    barInnerTex;
+	Texture*    barOuterTex;
 	Player      p;
 	ItemList    items;
 	EnemyList   enemies;
@@ -52,6 +55,9 @@ void TestGame::VOnStartup(void)
 	itemTex = m_content.LoadTexture(VTEXT("rock.png"));
 	enemyTex = m_content.LoadTexture(VTEXT("enemy.png"));
 	splatTex = m_content.LoadTexture(VTEXT("zombie_splat.png"));
+	heartTex = m_content.LoadTexture(VTEXT("heart.png"));
+	barInnerTex = m_content.LoadTexture(VTEXT("bar_inner.png"));
+	barOuterTex = m_content.LoadTexture(VTEXT("bar_outer.png"));
 	p.SetTexture(playerTex);
 	p.SetOrigin(Vector2(16, 16));
 	p.SetPosition(Vector2(20,20));
@@ -85,6 +91,11 @@ void TestGame::VOnUpdate(float dt)
 		fs = !fs;
 		m_window->VSetFullscreen(fs);
 	}
+	if(m_keyboard->SingleKeyPress(IKEY::F2)) {
+		//revive all zombies, for testing
+		for(auto& e : enemies)
+			e->revive();
+	}
 	p.VHandleInput(m_keyboard, m_mouse, dt);
 	p.VUpdate(dt);
 
@@ -112,6 +123,15 @@ void TestGame::VOnUpdate(float dt)
 			if(e->GetBounds().Intersects(p.GetBounds()))
 			{
 				e->explode();
+				p.TakeDamage();
+			}
+			Item* lastPThrownItem = p.GetLastThrownItem();
+			if(lastPThrownItem) {
+					if(lastPThrownItem->GetInAir()) {
+					if(e->GetBounds().Intersects(lastPThrownItem->GetBounds())) {
+						e->explode();
+					}
+				}
 			}
 		}
 	}
@@ -119,17 +139,30 @@ void TestGame::VOnUpdate(float dt)
 
 void TestGame::VOnRender(float dt)
 {
-	p.VRender(GLRENDERER, dt);
-
+	
 	for(auto& item : items)
 		item->VRender(GLRENDERER, dt);
 
 	for(auto& e : enemies)
 		e->VRender(GLRENDERER, dt);
 
-	USStream ss;
-	ss << "Throw Power: " << p.GetThrowPower() * 50.0f;
-	GLRENDERER->Render2DText(font, ss.str(), Vector2(20, m_window->VGetClientBounds().h - 30), Colors::White);
+
+	//PLAYER SHOULD BE DRAWN AFTER THE ENEMIES AND ITEMS
+	p.VRender(GLRENDERER, dt);
+
+	//USStream ss;
+	//ss << "Throw Power: " << p.GetThrowPower() * 50.0f;
+	GLRENDERER->Render2DTexture((GLTexture*)barOuterTex, Vector2(20, m_window->VGetClientBounds().h - 40),
+		Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, Colors::White, 0.0f);
+	GLRENDERER->Render2DTexture((GLTexture*)barInnerTex, Vector2(20, m_window->VGetClientBounds().h - 40),
+		Rect(0, 0, (p.GetThrowPower() / 1.0f) * 256.0f, 32), Vector2::Zero, Vector2::Unit, 0.0f, Colors::Green, 0.0f);
+	//GLRENDERER->Render2DText(font, ss.str(), Vector2(20, m_window->VGetClientBounds().h - 30), Colors::White);
+
+	for(int i = 0; i < p.GetHP(); i++)
+	{
+		GLRENDERER->Render2DTexture((GLTexture*)heartTex, Vector2(20 + i*32, m_window->VGetClientBounds().h - 75),
+			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, Colors::White, 0.0f);
+	}
 }
 
 void TestGame::VOnShutdown(void)

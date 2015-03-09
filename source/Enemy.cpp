@@ -27,6 +27,11 @@ void Enemy::explode()
 	alive = false;
 }
 
+void Enemy::revive()
+{
+	alive = true;
+}
+
 const bool Enemy::IsAlive() const
 {
 	return alive;
@@ -34,6 +39,9 @@ const bool Enemy::IsAlive() const
 
 void Enemy::VUpdate(float dt)
 {
+	if(!alive)
+		return;
+
 	m_position += velocity * Vector2(cos(m_rotation*0.0174532925f), sin(m_rotation*0.0174532925f)) * dt * MOVE_SPEED;
 
 	m_bounds.x = m_position.x;

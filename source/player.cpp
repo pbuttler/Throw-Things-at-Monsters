@@ -5,11 +5,19 @@ Player::Player()
 {
 	m_velocity = Vector2::Zero;
 	m_throwPower = 0.0f;
+	m_hp = 3;
+	m_prevThrownItem = NULL;
+	m_item = NULL;
 }
 
 const float Player::GetThrowPower() const
 {
 	return m_throwPower;
+}
+
+Item* Player::GetLastThrownItem() const
+{
+	return m_prevThrownItem;
 }
 
 const int Player::GetHP() const
@@ -24,6 +32,7 @@ void Player::PickUpItem(Item* item)
 	item->SetOwned(true);
 	item->SetOwner(this);
 	m_item = item;
+	m_prevThrownItem = item;
 }
 
 void Player::ThrowItem()

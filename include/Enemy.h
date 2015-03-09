@@ -21,6 +21,7 @@ public:
 	//void move();
 	//void destroy();
 	void explode();
+	void revive();
 	void seekPlayer(Player target);
 
 	static const int MOVE_SPEED = 75;
