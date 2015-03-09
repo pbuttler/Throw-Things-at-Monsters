@@ -30,6 +30,7 @@ void Enemy::explode()
 void Enemy::revive()
 {
 	alive = true;
+	m_alpha = 1.0f;
 }
 
 const bool Enemy::IsAlive() const
@@ -39,13 +40,16 @@ const bool Enemy::IsAlive() const
 
 void Enemy::VUpdate(float dt)
 {
-	if(!alive)
-		return;
+	if(!alive) {
+		if(m_alpha > 0.0f)
+			m_alpha -= dt;
+		
+	} else {
+		m_position += velocity * Vector2(cos(m_rotation*0.0174532925f), sin(m_rotation*0.0174532925f)) * dt * MOVE_SPEED;
 
-	m_position += velocity * Vector2(cos(m_rotation*0.0174532925f), sin(m_rotation*0.0174532925f)) * dt * MOVE_SPEED;
-
-	m_bounds.x = m_position.x;
-	m_bounds.y = m_position.y;
+		m_bounds.x = m_position.x;
+		m_bounds.y = m_position.y;
+	}
 }
 
 void Enemy::VRender(GLRenderer* renderer, float dt)
@@ -54,7 +58,7 @@ void Enemy::VRender(GLRenderer* renderer, float dt)
 		GameObject::VRender(renderer, dt);
 	}
 	else {
-		renderer->Render2DTexture((GLTexture*)deadTexture, m_position, Rect::EMPTY, m_origin, Vector2::Unit, m_rotation, Colors::White, 0.0f);
+		renderer->Render2DTexture((GLTexture*)deadTexture, m_position, Rect::EMPTY, m_origin, Vector2::Unit, m_rotation, m_alpha, Colors::White, 0.0f);
 	}
 }
 

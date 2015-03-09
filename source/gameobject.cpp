@@ -7,6 +7,7 @@ GameObject::GameObject(void)
 	m_origin = Vector2::Zero;
 	m_rotation = 0.0f;
 	m_bounds = Rect::EMPTY;
+	m_alpha = 1.0f;
 }
 
 GameObject::~GameObject(void)
@@ -23,7 +24,7 @@ void GameObject::VRender(GLRenderer* renderer, float dt)
 {
 	if(m_texture)
 		renderer->Render2DTexture((GLTexture*)m_texture, m_position, Rect::EMPTY, m_origin, Vector2::Unit,
-			m_rotation, Colors::White, 0.0f);
+		m_rotation, m_alpha, Colors::White, 0.0f);
 }
 
 /*SETTERS*/

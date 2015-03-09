@@ -21,6 +21,7 @@ public:
 	void SetOrigin(Vector2 origin);
 	void SetRotation(float rotation);
 
+
 	/*GETTERS*/
 	const Texture* GetTexture()		const;
 	const Vector2& GetPosition()	const;
@@ -39,6 +40,7 @@ protected:
 	Vector2  m_position; //GameObject 2D screen position (in PIXELS)
 	Vector2  m_origin;   //GameObject origin (used for rotation)
 	float    m_rotation; //GameObject rotation
+	float    m_alpha;    //GameObject alpha
 	Rect     m_bounds;
 };
 

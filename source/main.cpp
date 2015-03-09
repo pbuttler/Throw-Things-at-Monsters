@@ -116,10 +116,10 @@ void TestGame::VOnUpdate(float dt)
 	}
 
 	for(auto& e : enemies) {
+		e->VUpdate(dt);
 		if(e->IsAlive())
 		{
 			e->seekPlayer(p);
-			e->VUpdate(dt);
 			if(e->GetBounds().Intersects(p.GetBounds()))
 			{
 				e->explode();
@@ -153,15 +153,15 @@ void TestGame::VOnRender(float dt)
 	//USStream ss;
 	//ss << "Throw Power: " << p.GetThrowPower() * 50.0f;
 	GLRENDERER->Render2DTexture((GLTexture*)barOuterTex, Vector2(20, m_window->VGetClientBounds().h - 40),
-		Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, Colors::White, 0.0f);
+		Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
 	GLRENDERER->Render2DTexture((GLTexture*)barInnerTex, Vector2(20, m_window->VGetClientBounds().h - 40),
-		Rect(0, 0, (p.GetThrowPower() / 1.0f) * 256.0f, 32), Vector2::Zero, Vector2::Unit, 0.0f, Colors::Green, 0.0f);
+		Rect(0, 0, (p.GetThrowPower() / 1.0f) * 256.0f, 32), Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::Green, 0.0f);
 	//GLRENDERER->Render2DText(font, ss.str(), Vector2(20, m_window->VGetClientBounds().h - 30), Colors::White);
 
 	for(int i = 0; i < p.GetHP(); i++)
 	{
 		GLRENDERER->Render2DTexture((GLTexture*)heartTex, Vector2(20 + i*32, m_window->VGetClientBounds().h - 75),
-			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, Colors::White, 0.0f);
+			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
 	}
 }
 
