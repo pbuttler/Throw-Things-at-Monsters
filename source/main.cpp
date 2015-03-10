@@ -25,7 +25,8 @@ public:
 	virtual void VOnShutdown(void)   override;
 
 	void startGOSndStream();
-	void restartGame();
+	void restartGame(bool resetPlayer);
+	void respawnEnemies();
 
 public:
 	BMFont*		font;
@@ -50,12 +51,42 @@ public:
 	SNDFILE_DATA* gameOverSnd; //sound effect for game over
 	PaStream*     stream; //port audio stream
 	PaError       error;
+	int           numEnemies;
+	bool        resetPlayer;
 };
 
 TestGame::TestGame()
 	: IGame()
 {
 	
+}
+
+void TestGame::respawnEnemies()
+{
+	enemies.clear();
+	Item* item = new Item("Rock", 1.0, 1.0, 1.0);
+	item->SetTexture(itemTex);
+	item->SetPosition(Vector2(100,100));
+	item->SetOrigin(Vector2(16, 16));
+	items.push_back(item);
+	Item* item2 = new Item("Star", 1.0, 1.0, 1.0);
+	item2->SetTexture(ninjaStarTex);
+	item2->SetPosition(Vector2(450,500));
+	item2->SetOrigin(Vector2(16, 16));
+	items.push_back(item2);
+
+	// set up enemy
+	Enemy* enemy1 = new Enemy("", 1, p, splatTex);
+	for(int i = 0; i < 10; i++)
+	{
+		int rX = rand() % 800;
+		int rY = rand() % 600;
+		enemy1->SetPosition(Vector2(rX, rY));
+		enemy1->SetTexture(enemyTex);
+		enemy1->SetOrigin(Vector2(16, 16));
+		enemies.push_back(enemy1);
+		enemy1 = new Enemy("", 1, p, splatTex);
+	}
 }
 
 void TestGame::startGOSndStream()
@@ -83,15 +114,18 @@ void TestGame::startGOSndStream()
 	}
 }
 
-void TestGame::restartGame()
+void TestGame::restartGame(bool resetPlayer)
 {
+	numEnemies = 10;
 	dead = false;
 	gameOver = false;
 	enemies.clear();
 	items.clear();
-	p.SetPosition(Vector2(20,20));
-	p.SetHP(3);
-	p.Revive();
+	if(resetPlayer) {
+		p.SetPosition(Vector2(20,20));
+		p.SetHP(3);
+		p.Revive();
+	}
 	Item* item = new Item("Rock", 1.0, 1.0, 1.0);
 	item->SetTexture(itemTex);
 	item->SetPosition(Vector2(100,100));
@@ -119,6 +153,7 @@ void TestGame::restartGame()
 
 void TestGame::VOnStartup(void)
 {
+	numEnemies = 10;
 	/*PORT AUDIO INIT STUFF*/
 	PAUDIO_Init();
 	gameOverSnd = SNDFILE_ReadFile("gameover1.wav");
@@ -217,17 +252,21 @@ void TestGame::VOnUpdate(float dt)
 		}
 	}
 
-	for(auto& e : enemies) {
+	EnemyList::iterator it;
+	for(it = enemies.begin(); it != enemies.end(); it++) {
+		Enemy* e = *it;
 		e->VUpdate(dt);
 		if(e->IsAlive())
 		{
 			e->seekPlayer(p);
-			if(e->GetBounds().Intersects(p.GetBounds()))
+			if(e->GetBounds().Intersects(p.GetBounds()) && p.GetHP() > 0)
 			{
 				e->explode();
+				numEnemies--;
 				p.TakeDamage();
 				if(p.GetHP() == 0) {
 					dead = true;
+					resetPlayer = true;
 					Pa_StartStream(stream);
 					p.Die();
 				}
@@ -237,17 +276,22 @@ void TestGame::VOnUpdate(float dt)
 					if(lastPThrownItem->GetInAir()) {
 					if(e->GetBounds().Intersects(lastPThrownItem->GetBounds())) {
 						e->explode();
+						numEnemies--;
 					}
 				}
 			}
-		}
+		} 
+	}
+
+	if(numEnemies <= 0) {
+		dead = true;
+		resetPlayer = false;
 	}
 
 	if(dead) {
 		gotAlpha += dt * 0.3f;
 		if(gotAlpha >= 1.0f) {
 			gameOver = true;
-			
 		}
 	}
 
@@ -255,7 +299,7 @@ void TestGame::VOnUpdate(float dt)
 		gotAlpha = 0.0f;
 		Pa_StopStream(stream);
 		startGOSndStream();
-		restartGame();
+		restartGame(resetPlayer);
 	}
 }
 
@@ -285,9 +329,12 @@ void TestGame::VOnRender(float dt)
 		GLRENDERER->Render2DTexture((GLTexture*)heartTex, Vector2(20 + i*32, m_window->VGetClientBounds().h - 75),
 			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
 	}
+
 	GLRENDERER->Render2DTexture((GLTexture*)crosshairTex, Vector2(mx, my),
 			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
-
+	USStream ss;
+	ss << "Enemies: " << numEnemies;
+	GLRENDERER->Render2DText(font, ss.str(), Vector2(20, m_window->VGetClientBounds().h - 100), 1.0f, Colors::White);
 	if(dead) {
 		GLRENDERER->Render2DText(bigFont, VTEXT("GAME OVER"), Vector2(-1, -1), gotAlpha, Colors::DarkRed);
 	}

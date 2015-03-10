@@ -26,6 +26,7 @@ public:
 
 	Vector2 GetVelocity();
 	float   GetMaxForce();
+	bool    ShouldRemove();
 
 	static const int MOVE_SPEED = 75;
 	
@@ -38,4 +39,5 @@ private:
 	Vector2    acceleration;
 	float      maxForce;
 	float      maxSpeed;
+	bool       shouldRemove;
 };

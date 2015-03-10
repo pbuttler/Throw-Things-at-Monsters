@@ -9,6 +9,7 @@ Enemy::Enemy() : GameObject()
 	acceleration = Vector2::Zero;
 	maxForce = 400.0f;
 	maxSpeed = 200.0f;
+	shouldRemove = false;
 }
 
 Enemy::Enemy(string enemyName, int enemyHealth, Player target, Texture* deadTex) : GameObject()
@@ -21,6 +22,7 @@ Enemy::Enemy(string enemyName, int enemyHealth, Player target, Texture* deadTex)
 	acceleration = Vector2::Zero;
 	maxForce = 400.0f;
 	maxSpeed = 200.0f;
+	shouldRemove = false;
 	seekPlayer(target);
 }
 
@@ -36,6 +38,11 @@ Vector2 Enemy::GetVelocity()
 float Enemy::GetMaxForce()
 {
 	return maxForce;
+}
+
+bool Enemy::ShouldRemove()
+{
+	return shouldRemove;
 }
 
 void Enemy::explode()
@@ -59,6 +66,8 @@ void Enemy::VUpdate(float dt)
 	if(!alive) {
 		if(m_alpha > 0.0f)
 			m_alpha -= dt;
+		else
+			shouldRemove = true;
 		
 	} else {
 		m_position += velocity * Vector2(cos(m_rotation*0.0174532925f), sin(m_rotation*0.0174532925f)) * dt * MOVE_SPEED;
