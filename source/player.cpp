@@ -118,8 +118,10 @@ void Player::VHandleInput(SDLKeyboardState* kb, SDLMouseState* ms, float dt)
 	int mx = ms->X();
 	int my = ms->Y();
 	float dist = m_position.Distance(Vector2(mx, my));
-	if(dist <= 45.0f)
-		m_velocity = Vector2::Zero;
+	if(dist <= 45.0f) {
+		if(m_velocity.y > 0 || m_velocity.x > 0)
+			m_velocity = Vector2::Zero;
+	}
 
 	m_rotation = atan2(dy,dx) * (180/PI);
 }

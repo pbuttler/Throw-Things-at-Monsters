@@ -35,12 +35,15 @@ public:
 	Texture*    barInnerTex;
 	Texture*    barOuterTex;
 	Texture*    ninjaStarTex;
+	Texture*    crosshairTex;
 	Player      p;
 	ItemList    items;
 	EnemyList   enemies;
 	bool        dead;
 	float       gotAlpha; //game over text alpha
 	bool        gameOver;
+	int         mx;
+	int         my;
 };
 
 TestGame::TestGame()
@@ -85,7 +88,7 @@ void TestGame::restartGame()
 
 void TestGame::VOnStartup(void)
 {
-
+	m_window->VToggleCursor();
 	GLRENDERER->VSetClearColor(Colors::Black);
 
 	dead = false;
@@ -103,6 +106,7 @@ void TestGame::VOnStartup(void)
 	barInnerTex = m_content.LoadTexture(VTEXT("bar_inner.png"));
 	barOuterTex = m_content.LoadTexture(VTEXT("bar_outer.png"));
 	ninjaStarTex = m_content.LoadTexture(VTEXT("ninja_star.png"));
+	crosshairTex = m_content.LoadTexture(VTEXT("crosshair.png"));
 	gotAlpha = 0.0f;
 	p.SetTexture(playerTex);
 	p.SetOrigin(Vector2(16, 16));
@@ -136,6 +140,9 @@ void TestGame::VOnStartup(void)
 
 void TestGame::VOnUpdate(float dt)
 {
+
+	mx = m_mouse->X();
+	my = m_mouse->Y();
 
 	if(m_keyboard->SingleKeyPress(IKEY::F1)) {
 		static bool fs = false;
@@ -192,7 +199,7 @@ void TestGame::VOnUpdate(float dt)
 	}
 
 	if(dead) {
-		gotAlpha += dt * 0.5f;
+		gotAlpha += dt * 0.3f;
 		if(gotAlpha >= 1.0f) {
 			gameOver = true;
 		}
@@ -230,6 +237,8 @@ void TestGame::VOnRender(float dt)
 		GLRENDERER->Render2DTexture((GLTexture*)heartTex, Vector2(20 + i*32, m_window->VGetClientBounds().h - 75),
 			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
 	}
+	GLRENDERER->Render2DTexture((GLTexture*)crosshairTex, Vector2(mx, my),
+			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
 
 	if(dead) {
 		GLRENDERER->Render2DText(bigFont, VTEXT("GAME OVER"), Vector2(-1, -1), gotAlpha, Colors::DarkRed);
