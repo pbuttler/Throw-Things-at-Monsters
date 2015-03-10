@@ -1,4 +1,6 @@
 #include <vix_game.h>
+#include <vix_portaudio.h>
+#include <vix_sndfile.h>
 #include <vector>
 #include "gameobject.h"
 #include "player.h"
@@ -22,6 +24,7 @@ public:
 	virtual void VOnRender(float dt) override;
 	virtual void VOnShutdown(void)   override;
 
+	void startGOSndStream();
 	void restartGame();
 
 public:
@@ -44,12 +47,40 @@ public:
 	bool        gameOver;
 	int         mx;
 	int         my;
+	SNDFILE_DATA* gameOverSnd; //sound effect for game over
+	PaStream*     stream; //port audio stream
+	PaError       error;
 };
 
 TestGame::TestGame()
 	: IGame()
 {
 	
+}
+
+void TestGame::startGOSndStream()
+{
+	int r = rand() % 2 + 1;
+	if(r == 1) {
+		gameOverSnd = SNDFILE_ReadFile("gameover1.wav");
+		error = Pa_OpenDefaultStream(&stream, 0, /* no input */
+								gameOverSnd->sfinfo.channels,
+								paFloat32,
+								gameOverSnd->sfinfo.samplerate,
+								paFramesPerBufferUnspecified,
+								PAUDIO_Callback,
+								gameOverSnd );
+	}
+	else {
+		gameOverSnd = SNDFILE_ReadFile("gameover2.wav");
+		error = Pa_OpenDefaultStream(&stream, 0, /* no input */
+								gameOverSnd->sfinfo.channels,
+								paFloat32,
+								gameOverSnd->sfinfo.samplerate,
+								paFramesPerBufferUnspecified,
+								PAUDIO_Callback,
+								gameOverSnd );
+	}
 }
 
 void TestGame::restartGame()
@@ -88,6 +119,19 @@ void TestGame::restartGame()
 
 void TestGame::VOnStartup(void)
 {
+	/*PORT AUDIO INIT STUFF*/
+	PAUDIO_Init();
+	gameOverSnd = SNDFILE_ReadFile("gameover1.wav");
+	error = Pa_OpenDefaultStream(&stream, 0, /* no input */
+								gameOverSnd->sfinfo.channels,
+								paFloat32,
+								gameOverSnd->sfinfo.samplerate,
+								paFramesPerBufferUnspecified,
+								PAUDIO_Callback,
+								gameOverSnd );
+
+
+
 	m_window->VToggleCursor();
 	GLRENDERER->VSetClearColor(Colors::Black);
 
@@ -184,6 +228,7 @@ void TestGame::VOnUpdate(float dt)
 				p.TakeDamage();
 				if(p.GetHP() == 0) {
 					dead = true;
+					Pa_StartStream(stream);
 					p.Die();
 				}
 			}
@@ -202,11 +247,14 @@ void TestGame::VOnUpdate(float dt)
 		gotAlpha += dt * 0.3f;
 		if(gotAlpha >= 1.0f) {
 			gameOver = true;
+			
 		}
 	}
 
 	if(gameOver) {
 		gotAlpha = 0.0f;
+		Pa_StopStream(stream);
+		startGOSndStream();
 		restartGame();
 	}
 }
