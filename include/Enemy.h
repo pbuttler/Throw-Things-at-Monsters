@@ -24,6 +24,9 @@ public:
 	void revive();
 	void seekPlayer(Player target);
 
+	Vector2 GetVelocity();
+	float   GetMaxForce();
+
 	static const int MOVE_SPEED = 75;
 	
 private:
@@ -32,4 +35,7 @@ private:
 	int		   health;
 	bool	   alive;
 	Vector2    velocity;
+	Vector2    acceleration;
+	float      maxForce;
+	float      maxSpeed;
 };

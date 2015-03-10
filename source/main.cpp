@@ -22,8 +22,11 @@ public:
 	virtual void VOnRender(float dt) override;
 	virtual void VOnShutdown(void)   override;
 
+	void restartGame();
+
 public:
 	BMFont*		font;
+	BMFont*     bigFont;
 	Texture*    playerTex;
 	Texture*    splatTex;
 	Texture*    itemTex;
@@ -31,10 +34,13 @@ public:
 	Texture*    heartTex;
 	Texture*    barInnerTex;
 	Texture*    barOuterTex;
+	Texture*    ninjaStarTex;
 	Player      p;
 	ItemList    items;
 	EnemyList   enemies;
-	
+	bool        dead;
+	float       gotAlpha; //game over text alpha
+	bool        gameOver;
 };
 
 TestGame::TestGame()
@@ -43,14 +49,52 @@ TestGame::TestGame()
 	
 }
 
+void TestGame::restartGame()
+{
+	dead = false;
+	gameOver = false;
+	enemies.clear();
+	items.clear();
+	p.SetPosition(Vector2(20,20));
+	p.SetHP(3);
+	p.Revive();
+	Item* item = new Item("Rock", 1.0, 1.0, 1.0);
+	item->SetTexture(itemTex);
+	item->SetPosition(Vector2(100,100));
+	item->SetOrigin(Vector2(16, 16));
+	items.push_back(item);
+	Item* item2 = new Item("Star", 1.0, 1.0, 1.0);
+	item2->SetTexture(ninjaStarTex);
+	item2->SetPosition(Vector2(450,500));
+	item2->SetOrigin(Vector2(16, 16));
+	items.push_back(item2);
+
+	// set up enemy
+	Enemy* enemy1 = new Enemy("", 1, p, splatTex);
+	for(int i = 0; i < 10; i++)
+	{
+		int rX = rand() % 800;
+		int rY = rand() % 600;
+		enemy1->SetPosition(Vector2(rX, rY));
+		enemy1->SetTexture(enemyTex);
+		enemy1->SetOrigin(Vector2(16, 16));
+		enemies.push_back(enemy1);
+		enemy1 = new Enemy("", 1, p, splatTex);
+	}
+}
+
 void TestGame::VOnStartup(void)
 {
 
 	GLRENDERER->VSetClearColor(Colors::Black);
 
+	dead = false;
+	gameOver = false;
+
 	srand(time(NULL));
 
 	font = m_content.LoadFont(VTEXT("Consolas_24.fnt"));
+	bigFont = m_content.LoadFont(VTEXT("Consolas_36.fnt"));
 	playerTex = m_content.LoadTexture(VTEXT("player.png"));
 	itemTex = m_content.LoadTexture(VTEXT("rock.png"));
 	enemyTex = m_content.LoadTexture(VTEXT("enemy.png"));
@@ -58,6 +102,8 @@ void TestGame::VOnStartup(void)
 	heartTex = m_content.LoadTexture(VTEXT("heart.png"));
 	barInnerTex = m_content.LoadTexture(VTEXT("bar_inner.png"));
 	barOuterTex = m_content.LoadTexture(VTEXT("bar_outer.png"));
+	ninjaStarTex = m_content.LoadTexture(VTEXT("ninja_star.png"));
+	gotAlpha = 0.0f;
 	p.SetTexture(playerTex);
 	p.SetOrigin(Vector2(16, 16));
 	p.SetPosition(Vector2(20,20));
@@ -67,6 +113,11 @@ void TestGame::VOnStartup(void)
 	item->SetPosition(Vector2(100,100));
 	item->SetOrigin(Vector2(16, 16));
 	items.push_back(item);
+	Item* item2 = new Item("Star", 1.0, 1.0, 1.0);
+	item2->SetTexture(ninjaStarTex);
+	item2->SetPosition(Vector2(450,500));
+	item2->SetOrigin(Vector2(16, 16));
+	items.push_back(item2);
 
 	// set up enemy
 	Enemy* enemy1 = new Enemy("", 1, p, splatTex);
@@ -124,6 +175,10 @@ void TestGame::VOnUpdate(float dt)
 			{
 				e->explode();
 				p.TakeDamage();
+				if(p.GetHP() == 0) {
+					dead = true;
+					p.Die();
+				}
 			}
 			Item* lastPThrownItem = p.GetLastThrownItem();
 			if(lastPThrownItem) {
@@ -134,6 +189,18 @@ void TestGame::VOnUpdate(float dt)
 				}
 			}
 		}
+	}
+
+	if(dead) {
+		gotAlpha += dt * 0.5f;
+		if(gotAlpha >= 1.0f) {
+			gameOver = true;
+		}
+	}
+
+	if(gameOver) {
+		gotAlpha = 0.0f;
+		restartGame();
 	}
 }
 
@@ -162,6 +229,10 @@ void TestGame::VOnRender(float dt)
 	{
 		GLRENDERER->Render2DTexture((GLTexture*)heartTex, Vector2(20 + i*32, m_window->VGetClientBounds().h - 75),
 			Rect::EMPTY, Vector2::Zero, Vector2::Unit, 0.0f, 1.0f, Colors::White, 0.0f);
+	}
+
+	if(dead) {
+		GLRENDERER->Render2DText(bigFont, VTEXT("GAME OVER"), Vector2(-1, -1), gotAlpha, Colors::DarkRed);
 	}
 }
 

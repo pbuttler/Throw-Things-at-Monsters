@@ -8,6 +8,7 @@ Player::Player()
 	m_hp = 3;
 	m_prevThrownItem = NULL;
 	m_item = NULL;
+	m_alive = true;
 }
 
 const float Player::GetThrowPower() const
@@ -24,6 +25,22 @@ const int Player::GetHP() const
 {
 	return m_hp;
 }
+
+void Player::SetHP(int hp)
+{
+	m_hp = hp;
+}
+
+void Player::Revive()
+{
+	m_alive = true;
+}
+
+void Player::Die()
+{
+	m_alive = false;
+}
+
 
 void Player::PickUpItem(Item* item)
 {
@@ -67,6 +84,9 @@ void Player::TakeDamage()
 
 void Player::VHandleInput(SDLKeyboardState* kb, SDLMouseState* ms, float dt)
 {
+
+	if(!m_alive)
+		return;
 	
 	if(kb->KeyPress(IKEY::W)) {
 		m_velocity.x = 1;
@@ -95,5 +115,17 @@ void Player::VHandleInput(SDLKeyboardState* kb, SDLMouseState* ms, float dt)
 	float dx = ms->X() - m_position.x;
 	float dy = ms->Y() - m_position.y;
 
+	int mx = ms->X();
+	int my = ms->Y();
+	float dist = m_position.Distance(Vector2(mx, my));
+	if(dist <= 45.0f)
+		m_velocity = Vector2::Zero;
+
 	m_rotation = atan2(dy,dx) * (180/PI);
+}
+
+void Player::VRender(GLRenderer* renderer, float dt)
+{
+	if(m_alive)
+		GameObject::VRender(renderer, dt);
 }

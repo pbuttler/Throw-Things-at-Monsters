@@ -6,6 +6,9 @@ Enemy::Enemy() : GameObject()
 	health = 1;
 	alive = true;
 	velocity = Vector2::Zero;
+	acceleration = Vector2::Zero;
+	maxForce = 400.0f;
+	maxSpeed = 200.0f;
 }
 
 Enemy::Enemy(string enemyName, int enemyHealth, Player target, Texture* deadTex) : GameObject()
@@ -15,11 +18,24 @@ Enemy::Enemy(string enemyName, int enemyHealth, Player target, Texture* deadTex)
 	deadTexture = deadTex;
 	alive = true;
 	velocity = Vector2::Zero;
+	acceleration = Vector2::Zero;
+	maxForce = 400.0f;
+	maxSpeed = 200.0f;
 	seekPlayer(target);
 }
 
 Enemy::~Enemy(void)
 {
+}
+
+Vector2 Enemy::GetVelocity()
+{
+	return velocity;
+}
+
+float Enemy::GetMaxForce()
+{
+	return maxForce;
 }
 
 void Enemy::explode()
